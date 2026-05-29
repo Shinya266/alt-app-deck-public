@@ -1,0 +1,22 @@
+{
+  "demo-app": {
+    "id": "demo-app",
+    "name": "Demo App",
+    "root": "/path/to/demo-app",
+    "src": "/path/to/demo-app/src",
+    "build": "npm run build",
+    "restart": "pm2 restart demo-app --update-env",
+    "health": "http://127.0.0.1:3000/health",
+    "publicUrl": "https://example.com",
+    "pm2Name": "demo-app",
+    "allowedPaths": [
+      "/path/to/demo-app/src",
+      "/path/to/demo-app/public"
+    ],
+    "denyPaths": [
+      "/path/to/demo-app/.env",
+      "/path/to/demo-app/node_modules",
+      "/path/to/demo-app/.git"
+    ]
+  }
+}

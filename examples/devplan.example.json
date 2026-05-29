@@ -1,0 +1,20 @@
+{
+  "title": "Update demo message",
+  "targetAppId": "demo-app",
+  "summary": "Update one safe UI text line.",
+  "riskLevel": "low",
+  "requiresApproval": true,
+  "fileOps": [
+    {
+      "type": "update",
+      "path": "/path/to/demo-app/src/message.txt",
+      "content": "Updated by AppDeck after human approval.\n",
+      "reason": "Demo update"
+    }
+  ],
+  "commands": {
+    "build": true,
+    "restart": true,
+    "healthCheck": true
+  }
+}
