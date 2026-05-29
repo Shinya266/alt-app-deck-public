@@ -102,9 +102,9 @@ It receives DevPlans or fileOps-like instructions from a user or an upstream AI 
 
 ## What It Is Not
 
-Alt App Deck is not Altora Core.
+Alt App Deck is not Core.
 
-It does not contain private reasoning, memory, persona, Twin, Observer, Fugyaa, Board state, or private Core state.
+It does not contain private reasoning, memory, persona,  Observer,  Board state, or private Core state.
 
 It is a standalone external operations layer.
 
