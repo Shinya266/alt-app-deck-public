@@ -279,7 +279,3 @@ https://github.com/Shinya266
 ## License
 
 Portfolio / Demonstration Project
-
-
-
-![Audit](./appdeck-audit.png)
