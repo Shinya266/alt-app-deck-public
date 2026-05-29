@@ -1,44 +1,106 @@
 # Alt App Deck
 
 Human-Gated AI Operations Platform
-
-AI can propose. Only humans can release.
-
-Alt App Deck is a control plane for AI-generated application changes.  
-AI agents can submit DevPlans, but execution requires explicit human approval.
-
-The system provides:
-
-- AI-generated DevPlan intake
-- Diff preview before execution
-- Human approval gate
-- Safe apply pipeline
-- Backup before change
-- Build / restart / health check flow
-- Execution history
-- Rollback and rollback-run verification
-- Audit logging
-
-This public repository is a sanitized portfolio version.  
-It does not include production tokens, private data, logs, backups, or live infrastructure configuration.
+AI生成変更を人間承認つきで安全に流すためのOps Deck
 
 ---
 
-# Alt App Deck
+## Overview
+
+Alt App Deck is a human-gated control plane for AI-generated application changes.
+
+AI agents can propose DevPlans, but only humans can approve execution.
+
+Alt App Deck then applies the change through a deterministic operational flow:
+
+```text
+AI Agent / User
+→ DevPlan
+→ Diff Preview
+→ Human Approval
+→ Apply
+→ Backup
+→ Build
+→ Restart
+→ Health Check
+→ History
+→ Rollback Ready
+```
+
+Alt App Deckは、AI Agentが生成したアプリ変更をそのまま本番に流さず、
+人間承認・Diff確認・Backup・Build・Restart・Health Check・Rollbackに通すための運用レイヤーです。
+
+---
+
+## Status
+
+Public Portfolio Version
+Personal Project (2026)
+
+This repository is a sanitized portfolio version.
+
+It does not include:
+
+* production tokens
+* private data
+* runtime logs
+* backups
+* live infrastructure configuration
+* private Core state
+
+---
+
+## Core Concept
+
+AI can propose.
+Only humans can release.
+
+AIは提案できる。
+ただし、リリースできるのは人間だけ。
+
+---
+
+## Features
+
+### English
+
+* AI-generated DevPlan intake
+* Diff preview before execution
+* Human approval gate
+* Safe apply pipeline
+* Backup before change
+* Build / restart / health check flow
+* Execution history
+* Rollback and rollback-run verification
+* Audit logging
+* Registered app scope
+* Allowed paths / denied paths
+
+### 日本語
+
+* AI生成DevPlanの受け取り
+* 実行前のDiff確認
+* 人間承認フロー
+* 安全なApplyパイプライン
+* 変更前Backup
+* Build / Restart / Health Check
+* 実行履歴管理
+* Rollback / Rollback Run
+* Audit Log
+* 登録アプリ単位の管理
+* 許可パス / 拒否パス制御
+
+---
+
+## What It Is
 
 Alt App Deck is a standalone human-approved app operations deck.
 
 It receives DevPlans or fileOps-like instructions from a user or an upstream AI Agent, previews the diff, waits for explicit human approval, then safely applies changes to registered apps.
 
-Definition:
+---
 
-Human-approved deterministic deploys for AI-generated changes.
-
-AI proposes.
-Human approves.
-AppDeck applies, backs up, builds, restarts, checks health, records history, and can roll back.
-
-What it is not:
+## What It Is Not
 
 Alt App Deck is not Altora Core.
 
@@ -46,104 +108,83 @@ It does not contain private reasoning, memory, persona, Twin, Observer, Fugyaa, 
 
 It is a standalone external operations layer.
 
-Flow:
+---
 
-USER or AI Agent
--> DevPlan / fileOps
--> Alt AppDeck pending queue
--> Diff preview
--> Human approve
--> Apply
--> Backup
--> Build
--> Restart
--> Health check
--> History
--> Rollback / Rollback Run
+## Architecture
 
-Core boundary:
+```text
+User / AI Agent
+      │
+      ▼
+DevPlan / fileOps
+      │
+      ▼
+Pending Queue
+      │
+      ▼
+Diff Preview
+      │
+      ▼
+Human Approval
+      │
+      ▼
+Safe Apply
+      │
+      ▼
+Backup
+      │
+      ▼
+Build / Restart / Health Check
+      │
+      ▼
+History / Audit Log
+      │
+      ▼
+Rollback Ready
+```
 
-Alt App Deck is not Altora Core. It does not contain private reasoning, memory, persona, Twin, Observer, Fugyaa, or Board state. It is a standalone human-gated app operations deck. The user provides intent. Alt App Deck previews and applies app changes only after explicit human approval.
+---
 
-Ports:
+## Security Model
 
-Backend API:
-- Internal only: 127.0.0.1:4300
+Alt App Deck is designed to prevent autonomous AI changes from reaching production without human review.
 
-UI + Proxy:
-- Public: example.com:4310
-- Public UI proxies /api/* to internal backend.
+Main controls:
 
-Public firewall should not expose 4300.
+* Human-gated by default
+* Token required for mutating routes
+* Agent token can only create pending DevPlans
+* Admin token required for approve / apply / rollback / build / restart
+* No arbitrary shell execution from DevPlan
+* Registered app commands only
+* Allowed paths required
+* Denied paths enforced
+* `.env` and secret files blocked
+* Symlink traversal blocked
+* File extension allowlist
+* File size limit
+* Delete requires explicit confirmation
+* Backup before apply
+* History after apply
+* Rollback available
 
-Security model:
+---
 
-- Human-gated by default
-- Token required for mutating routes
-- Agent token can only create pending DevPlans
-- Admin token required for approve/apply/rollback/build/restart
-- No arbitrary shell from DevPlan
-- Registered app commands only
-- allowedPaths required
-- denyPaths enforced
-- .env and secret files blocked
-- Symlink traversal blocked
-- File extension allowlist
-- File size limit
-- Delete requires confirmDelete:true
-- Backup before apply
-- History after apply
-- Rollback available
-- Rollback Run performs restore, build, restart, and health check
+## Example DevPlan
 
-Main APIs:
-
-GET /api/health
-
-GET /api/apps
-GET /api/apps/:appId/status
-POST /api/apps/:appId/build
-POST /api/apps/:appId/restart
-
-POST /api/devplans
-GET /api/devplans
-GET /api/devplans/:id
-GET /api/devplans/:id/diff
-POST /api/devplans/:id/approve
-POST /api/devplans/:id/decline
-POST /api/devplans/:id/apply
-
-POST /api/agent/devplans
-
-GET /api/history
-GET /api/history/:id
-POST /api/history/:id/rollback
-POST /api/history/:id/rollback-run
-
-GET /api/logs/audit
-
-Agent Intake:
-
-Upstream AI agents should only submit DevPlans.
-
-They must not approve, apply, rollback, build, or restart.
-
-Example:
-
-ALT_APP_DECK_AGENT_TOKEN=$(cat /path/to/appdeck-data/agent-token.txt) appdeck-agent-submit ./devplan.json
-
-DevPlan example:
-
+```json
 {
-  "title": "Update message",
-  "targetAppId": "appdeck-demo",
-  "summary": "Change one safe visible line.",
+  "title": "Update demo message",
+  "targetAppId": "demo-app",
+  "summary": "Update one safe UI text line.",
+  "riskLevel": "low",
+  "requiresApproval": true,
   "fileOps": [
     {
       "type": "update",
-      "path": "/root/appdeck-demo/src/message.txt",
-      "content": "Hello from AppDeck.\n",
-      "reason": "Demo update."
+      "path": "/path/to/demo-app/src/message.txt",
+      "content": "Updated by AppDeck after human approval.\n",
+      "reason": "Demo update"
     }
   ],
   "commands": {
@@ -152,21 +193,70 @@ DevPlan example:
     "healthCheck": true
   }
 }
+```
 
-Current implemented phases:
+---
 
-Phase 1: Sandbox MVP complete.
-Phase 2: Real App Onboarding Demo complete.
-Phase 3: Token Guard complete.
-Phase 4: AI Agent / CLI Adapter complete.
-Phase 5-1: UI Admin Token support complete.
-Phase 5-2: rollback-run API complete.
-Phase 5-3: Safety Hardening complete.
-Phase 5-4: 4300 public API closed and UI proxy enabled.
-Phase 5-5: UI rollback-run complete.
-Phase 5-6: UI / Audit / Product Demo Polish in progress.
+## Current Implemented Phases
 
-Product line:
+* Phase 1: Sandbox MVP complete
+* Phase 2: Real App Onboarding Demo complete
+* Phase 3: Token Guard complete
+* Phase 4: AI Agent / CLI Adapter complete
+* Phase 5-1: UI Admin Token support complete
+* Phase 5-2: Rollback-run API complete
+* Phase 5-3: Safety hardening complete
+* Phase 5-4: Public backend API closed and UI proxy enabled
+* Phase 5-5: UI rollback-run complete
+* Phase 5-6: UI / audit / product demo polish in progress
+
+---
+
+## Screenshots
+
+### Command Deck
+
+![Command Deck](./appdeck-main.png)
+
+---
+
+### Execution Ledger
+
+![Execution Ledger](./appdeck-ledger.png)
+
+---
+
+### Audit / Registered Apps
+
+![Audit](./appdeck-audit.png)
+
+---
+
+## Tech Stack
+
+* Node.js
+* Express
+* React
+* JavaScript
+* Linux VPS
+* PM2
+* Git / GitHub
+* REST API
+* Human-in-the-loop workflow design
+
+---
+
+## Project Goals
+
+* Prevent unsafe autonomous AI execution
+* Keep humans in the release decision loop
+* Make AI-generated changes auditable
+* Provide rollback-ready app operations
+* Reduce operational uncertainty in AI-assisted development
+
+---
+
+## Product Line
 
 AI-generated changes should not go straight to production.
 
@@ -174,6 +264,22 @@ Alt App Deck gives them a human-approved execution path.
 
 More changes per token.
 More control per deploy.
+
+---
+
+## Author
+
+**Shinya Koike**
+
+GitHub:
+https://github.com/Shinya266
+
+---
+
+## License
+
+Portfolio / Demonstration Project
+
 
 ## Screenshots
 
