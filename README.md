@@ -281,16 +281,5 @@ https://github.com/Shinya266
 Portfolio / Demonstration Project
 
 
-## Screenshots
-
-### Command Deck
-
-![Command Deck](./appdeck-main.png)
-
-### Execution Ledger
-
-![Execution Ledger](./appdeck-ledger.png)
-
-### Audit / Registered Apps
 
 ![Audit](./appdeck-audit.png)
